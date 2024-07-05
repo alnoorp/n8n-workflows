@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>n8n Workflows</title>
-  <script src="https://cdn.jsdelivr.net/npm/n8n-editor-ui@latest/dist/n8n-editor-ui.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/n8n-editor-ui@1.49.0/dist/n8n-editor-ui.css">
+  <script src="https://unpkg.com/n8n-editor-ui@1.49.0/dist/n8n-editor-ui.umd.js"></script>
 </head>
 <body>
   <h1>My n8n Workflows</h1>
@@ -14,7 +15,7 @@
       const workflowData = await response.json();
 
       const workflowContainer = document.getElementById('workflow-container');
-      n8nEditorUi.renderWorkflow(workflowContainer, workflowData);
+      n8nEditorUi.render(workflowContainer, workflowData);
     }
 
     loadWorkflow();
