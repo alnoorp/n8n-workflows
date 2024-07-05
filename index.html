@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>n8n Workflows</title>
+  <script src="https://cdn.jsdelivr.net/npm/n8n-editor-ui@latest/dist/n8n-editor-ui.js"></script>
+</head>
+<body>
+  <h1>My n8n Workflows</h1>
+  <div id="workflow-container"></div>
+  <script>
+    async function loadWorkflow() {
+      const response = await fetch('Issues_Closed_Report.json');
+      const workflowData = await response.json();
+
+      const workflowContainer = document.getElementById('workflow-container');
+      n8nEditorUi.renderWorkflow(workflowContainer, workflowData);
+    }
+
+    loadWorkflow();
+  </script>
+</body>
+</html>
