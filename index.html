@@ -8,19 +8,34 @@
   <script src="https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component@latest/n8n-demo.bundled.js" defer type="module"></script>
 </head>
 <body>
-  <!-- Use the n8n-demo component -->
-  <n8n-demo workflow-data='{
-    "nodes": [
-      {
-        "id": "1",
-        "name": "Start",
-        "type": "n8n-nodes-base.start",
-        "typeVersion": 1,
-        "position": [240, 300]
+  <h1>n8n Workflow Example</h1>
+  <!-- Container for the n8n-demo component -->
+  <div id="workflow-container"></div>
+
+  <script>
+    async function loadWorkflow() {
+      try {
+        // Fetch the JSON file from the root of your GitHub Pages repo
+        const response = await fetch('https://github.com/alnoorp/n8n-workflows/blob/main/Issues_Closed_Report.json');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const workflowData = await response.json();
+
+        // Create the n8n-demo element and set its workflow-data attribute
+        const workflowContainer = document.getElementById('workflow-container');
+        const n8nDemoElement = document.createElement('n8n-demo');
+        n8nDemoElement.workflowData = workflowData;
+        
+        // Append the n8n-demo element to the container
+        workflowContainer.appendChild(n8nDemoElement);
+      } catch (error) {
+        console.error('Error fetching the workflow data:', error);
       }
-      // Add more nodes as needed
-    ],
-    "connections": {}
-  }'></n8n-demo>
+    }
+
+    // Load the workflow once the script is loaded
+    window.addEventListener('DOMContentLoaded', loadWorkflow);
+  </script>
 </body>
 </html>
