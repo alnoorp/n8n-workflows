@@ -15,18 +15,21 @@
   <script>
     async function loadWorkflow() {
       try {
-        // Fetch the JSON file from the root of your GitHub Pages repo
+        // Fetch the JSON file using a relative URL
         const response = await fetch('Issues_Closed_Report.json');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const workflowData = await response.json();
+        console.log('Workflow Data:', workflowData); // Debugging output
 
-        // Create the n8n-demo element and set its workflow-data attribute
+        // Create the n8n-demo element
         const workflowContainer = document.getElementById('workflow-container');
         const n8nDemoElement = document.createElement('n8n-demo');
-        n8nDemoElement.workflowData = workflowData;
         
+        // Assign workflow data
+        n8nDemoElement.workflowData = workflowData;
+
         // Append the n8n-demo element to the container
         workflowContainer.appendChild(n8nDemoElement);
       } catch (error) {
