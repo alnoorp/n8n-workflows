@@ -1,30 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>n8n Workflows</title>
-  <link rel="stylesheet" href="https://unpkg.com/n8n-editor-ui@1.49.0/dist/n8n-editor-ui.css">
-  <script src="https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component@latest/n8n-demo.bundled.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>n8n Workflow Example</title>
+  <!-- Include the n8n-demo component script -->
+  <script src="https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component@latest/n8n-demo.bundled.js" defer type="module"></script>
 </head>
 <body>
-  <h1>My n8n Workflows</h1>
-  <div id="workflow-container"></div>
-  <script>
-    async function loadWorkflow() {
-      const response = await fetch('Issues_Closed_Report.json'); // Replace with the actual path to your JSON file
-      const workflowData = await response.json();
-
-      const workflowContainer = document.getElementById('workflow-container');
-      if (typeof n8nEditorUi !== 'undefined') {
-        n8nEditorUi.render(workflowContainer, workflowData);
-      } else if (typeof N8nDemo !== 'undefined' && typeof N8nDemo.render === 'function') {
-        N8nDemo.render(workflowContainer, workflowData);
-      } else {
-        console.error('No suitable rendering function found');
+  <!-- Use the n8n-demo component -->
+  <n8n-demo workflow-data='{
+    "nodes": [
+      {
+        "id": "1",
+        "name": "Start",
+        "type": "n8n-nodes-base.start",
+        "typeVersion": 1,
+        "position": [240, 300]
       }
-    }
-
-    loadWorkflow();
-  </script>
+      // Add more nodes as needed
+    ],
+    "connections": {}
+  }'></n8n-demo>
 </body>
 </html>
