@@ -1,0 +1,325 @@
+{
+  "name": "Issues Closed Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "96353dee-f0e3-4631-8b02-4b5d14048bb3",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -940,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "basicAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "requestFormat": "json",
+        "query": "=query {\n  organization(login: \"FlatFilers\") {\n    projectV2(number: 6) {\n      url\n\t\t\titems ( \n        first: 100\n        {{ ($runIndex === 0) ? null : $('set cursor').item.json[\"page\"] }}\n        orderBy: { field: POSITION direction: DESC }) {\n        pageInfo {\n          endCursor\n        }\n        totalCount\n        nodes {\n          id\n          databaseId\n          createdAt\n          isArchived\n          fieldValues (first: 15 ) {\n            nodes {                \n              ... on ProjectV2ItemFieldTextValue {\n                text\n                field {\n                  ... on ProjectV2FieldCommon {\n                    name\n                  }\n                }\n              }\n              ... on ProjectV2ItemFieldDateValue {\n                date\n                field {\n                  ... on ProjectV2FieldCommon {\n                    name\n                  }\n                }\n              }\n              ... on ProjectV2ItemFieldSingleSelectValue {\n                name\n                field {\n                  ... on ProjectV2FieldCommon {\n                    name\n                  }\n                }\n              }\n          \t}\n        \t}\n      \t}\n    \t}\n    }\n  }\n}"
+      },
+      "id": "2b221b65-439a-4661-b2d6-a8d8af11f478",
+      "name": "GH Issues",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        440
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AVw6DYzmegDF0TPm",
+          "name": "GitHub PA Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.Status }}",
+              "value2": "🟣 Completed"
+            }
+          ]
+        }
+      },
+      "id": "9fdfb150-1f86-48fa-b0ed-9b033eff4500",
+      "name": "Filter",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [
+        380,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let pageCount = $node['Extract Issues'].runIndex;\nlet allIssues = [];\n\nfor (let index = 0; index <= pageCount; index++) {\n  allIssues = allIssues.concat($items('Extract Issues', 0, index));\n};\n\nreturn allIssues;"
+      },
+      "id": "1aa1c175-24bf-4e17-b1c0-94b413ddd4bb",
+      "name": "Code2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "page",
+              "value": "=after: \"{{ $json.data.organization.projectV2.items.pageInfo.endCursor }}\""
+            }
+          ],
+          "boolean": [
+            {
+              "name": "lastPage",
+              "value": "={{ ($json.data.organization.projectV2.items.pageInfo.endCursor === null) ? true : false }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f44db956-6bdf-4650-8582-80665d5456b2",
+      "name": "set cursor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        440
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input2 = $('GH Issues').first();\n\nconst issues = input2.json.data.organization.projectV2.items.nodes\n\nlet output = []\nissues.forEach((issue, index) => {\n   // $('set cursor').context.index = index;\n  const jsonObj = {};\n  jsonObj['databaseId'] = issue.databaseId\n  issue.fieldValues.nodes.forEach((element, index) => {\n    if (element && element.field && element.field.name) {\n      jsonObj[`${element.field.name}`] = element.name || element.text || element.date\n    }\n  })\n  output.push(jsonObj)\n})\n\nreturn output;\n"
+      },
+      "id": "7372d422-7e64-4b66-bd4f-02e65d4b776f",
+      "name": "Extract Issues",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        440
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $('GH Issues').item.json.data.organization.projectV2.items.pageInfo.endCursor }}",
+              "operation": "equal",
+              "value2": "={{ null }}"
+            }
+          ]
+        }
+      },
+      "id": "1fe2e4c1-a79f-4049-9c4c-a806d003c80e",
+      "name": "Last Page?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        0,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#test-support",
+          "mode": "name"
+        },
+        "text": "=:arrow_forward: <https://github.com/orgs/FlatFilers/projects/6/views/7?pane=issue&itemId={{ $json.databaseId }}|{{ $json.Title }}> {{ ($json.Customers) ? '| '+$json.Customers : null }} {{ ($json[\"Due Date\"]) ? \"⏰ Due \"+$json.dueDateRelative : \"\" }} {{ $json.Status }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "link_names": true,
+          "unfurl_links": false
+        }
+      },
+      "id": "d35d3e83-062d-4c02-acbd-1718197c02c7",
+      "name": "Due Dates",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [
+        820,
+        420
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "xslzZqAqSOs92yoD",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const dueDateString = item.json[\"Due Date\"]\n  const dueDate = DateTime.fromISO(dueDateString)\n  item.json.dueDateRelative = dueDate.toRelative()\n}\n\nreturn $input.all();"
+      },
+      "id": "4cfa0c73-3300-4d70-986b-80f3b7ccccec",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "value": "={{ $json[\"Slack Name\"] }}",
+          "mode": "username"
+        },
+        "text": "=:arrow_forward: <https://github.com/orgs/FlatFilers/projects/6/views/7?pane=issue&itemId={{ $json.databaseId }}|{{ $json.Title }}> {{ ($json.Customers) ? '| '+$json.Customers : null }} {{ ($json[\"Due Date\"]) ? \"⏰ Due \"+$json.dueDateRelative : \"\" }} {{ $json.Status }} :bust_in_silhouette: @{{ $json[\"Slack Name\"] }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "link_names": true,
+          "unfurl_links": false
+        }
+      },
+      "id": "b53768df-0843-4e39-9f03-02ef4cee0415",
+      "name": "Due Dates1",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "position": [
+        820,
+        600
+      ],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "xslzZqAqSOs92yoD",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "GH Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GH Issues": {
+      "main": [
+        [
+          {
+            "node": "set cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set cursor": {
+      "main": [
+        [
+          {
+            "node": "Extract Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Issues": {
+      "main": [
+        [
+          {
+            "node": "Last Page?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Last Page?": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GH Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98d6c1e8-9006-4e40-9410-8b9159a0d8d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d2d83e82e7df2cbc3c7fe97a1ceb48888453afde18522210bd07b66fd4e60f9"
+  },
+  "id": "JoBTZ5A76OINWaux",
+  "tags": [
+    {
+      "createdAt": "2023-09-01T14:40:08.248Z",
+      "updatedAt": "2023-09-01T14:40:08.248Z",
+      "id": "rflVZP7JlWVxeBwB",
+      "name": "Dev"
+    }
+  ]
+}
