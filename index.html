@@ -32,6 +32,11 @@
 
         // Append the n8n-demo element to the container
         workflowContainer.appendChild(n8nDemoElement);
+
+        // Trigger rendering (if needed)
+        if (typeof n8nDemoElement.loadWorkflow === 'function') {
+          n8nDemoElement.loadWorkflow(workflowData);
+        }
       } catch (error) {
         console.error('Error fetching the workflow data:', error);
       }
