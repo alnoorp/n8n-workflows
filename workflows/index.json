@@ -5,5 +5,12 @@
     "description": "Generates a report of recently closed GitHub issues",
     "filename": "Issues_Closed_Report.json",
     "tags": ["github", "reporting"]
+  },
+  {
+    "id": "tavily-testing",
+    "title": "Tavily Testing",
+    "description": "Testing Tavily tool for AI powered research",
+    "filename": "Tavily_Testing.json",
+    "tags": ["tavily", "ai"]
   }
 ]
