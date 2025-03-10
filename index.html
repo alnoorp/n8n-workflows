@@ -103,7 +103,7 @@
   <button class="toggle-sidebar" onclick="toggleSidebar()">Toggle Sidebar</button>
   <div class="container">
     <div class="sidebar" id="sidebar">
-      <input type="text" placeholder="Search...">
+      <input type="text" id="search" placeholder="Search...">
       <ul id="workflow-list"></ul>
     </div>
     <div class="main-content">
@@ -119,6 +119,9 @@
   </div>
 
 <script>
+let workflows = [];
+let currentWorkflow = null;
+
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   sidebar.classList.toggle('hidden');
@@ -132,6 +135,42 @@ function showWorkflow() {
 function showJson() {
   document.getElementById('n8n-demo-container').style.display = 'none';
   document.getElementById('json-container').style.display = 'block';
+}
+
+fetch('workflows/index.json')
+  .then(response => response.json())
+  .then(data => {
+    workflows = data;
+    renderWorkflowList(workflows);
+  });
+
+function renderWorkflowList(workflows) {
+  const list = document.getElementById('workflow-list');
+  list.innerHTML = workflows.map(w => `
+    <li onclick="loadWorkflow('${w.id}')">${w.title}</li>
+  `).join('');
+}
+
+function loadWorkflow(id) {
+  const workflow = workflows.find(w => w.id === id);
+  if (!workflow) return;
+
+  currentWorkflow = workflow;
+
+  fetch(`workflows/${workflow.filename}`)
+    .then(response => response.json())
+    .then(data => {
+      const jsonContainer = document.getElementById('json-container');
+      jsonContainer.textContent = JSON.stringify(data, null, 2);
+
+      const container = document.getElementById('n8n-demo-container');
+      container.innerHTML = '';
+      const n8nElement = document.createElement('n8n-demo');
+      n8nElement.setAttribute('workflow', JSON.stringify(data));
+      container.appendChild(n8nElement);
+
+      showWorkflow();
+    });
 }
 </script>
 </body>
