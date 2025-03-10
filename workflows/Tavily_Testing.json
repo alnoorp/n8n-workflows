@@ -1,0 +1,228 @@
+{
+  "name": "Tavily Testing",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "855b7a98-f4e4-4eb6-8598-bd2dd464df9f",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "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"
+            },
+            {
+              "name": "query",
+              "value": "={{ $json.query }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        0
+      ],
+      "id": "f048f2f1-2ab4-4ccd-8bc5-41554d37ff57",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate 3 specific search queries to research Baskin-Robbins"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        20,
+        0
+      ],
+      "id": "b17f853d-9148-49d2-9a40-6550796a7dd6",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [
+        80,
+        200
+      ],
+      "id": "9a57daee-de8c-4bed-9d7a-2ab52f21dc7f",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "2m3wysdo0qfDXcn5",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst searchQueries = items.flatMap((item) =>\n  item.json.text\n    .split(\"\\n\")\n    .filter((q) => q.trim())\n    .map((query) => ({ json: { query } })),\n);\nreturn searchQueries;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        380,
+        0
+      ],
+      "id": "9130df0d-d91a-4a85-ab31-e0742630995d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strategic research analyst focusing on Baskin-Robbins through the lens of Flatfile's data onboarding solutions. Analyze these search results to build a comprehensive understanding of the company's potential data exchange challenges and opportunities.\n\n            CONTEXT:\n            Flatfile helps companies transform incoming data from their customers and partners into their desired format. Look for signals that indicate:\n            - Data exchange volumes and complexity\n            - Partner/customer onboarding processes\n            - Industry-specific data requirements\n            - Digital transformation initiatives\n            - Integration needs\n\n            PRIMARY OBJECTIVE:\n            Extract insights from search results that help us understand both explicit and implicit data onboarding needs, market positioning, and potential use cases for Flatfile.\n\n            AREAS TO ANALYZE:\n\n            1. Company Framework\n            - Industry position and market presence\n            - Business model and revenue streams\n            - Growth trajectory and company stage\n            - Geographic footprint\n            - Company size and scale\n\n            2. Strategic Technology Indicators\n            - Digital transformation initiatives\n            - Technology stack mentions\n            - Integration patterns\n            - Enterprise systems in use\n            - SaaS tool adoption\n\n            3. Business Relationships\n            - Types of customers/partners\n            - Partner ecosystem\n            - Data exchange relationships\n            - Customer onboarding processes\n            - B2B vs B2C orientation\n\n            4. Market & Growth Signals\n            - Recent funding or acquisitions\n            - New product launches\n            - Market expansion efforts\n            - Competitive pressures\n            - Industry trends affecting them\n\n            5. Operational Insights\n            - Business processes\n            - Scalability challenges\n            - Operational bottlenecks\n            - Compliance requirements\n            - Industry regulations\n\n            6. Data Exchange Patterns\n            - Customer data collection methods\n            - Partner data sharing needs\n            - Data standardization requirements\n            - Industry-specific data formats\n            - Compliance considerations\n\n            ANALYSIS GUIDELINES:\n            - Look beyond surface-level company information\n            - Connect disparate pieces of information to identify patterns\n            - Consider industry-specific data challenges\n            - Note temporal aspects (how recent is the information)\n            - Assess confidence level of each insight\n            - Flag areas needing further investigation\n\n            Search results: {{ JSON.stringify($json) }}\n\n            OUTPUT FORMAT:\n            Organize findings into these sections:\n\n            ### Company Overview\n            [Key company background and market position]\n\n            ### Strategic Insights\n            [Analysis of business model, growth, and market dynamics]\n\n            ### Technology & Operations\n            [Technical infrastructure and operational patterns]\n\n            ### Data Exchange Landscape\n            [Current and potential data movement patterns]\n\n            ### Opportunity Areas\n            [Specific areas where Flatfile could add value]\n\n            ### Knowledge Gaps\n            [Important areas requiring additional research]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        840,
+        0
+      ],
+      "id": "bd68ed39-8bf1-4389-a794-a36a6b5478f7",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.2,
+      "position": [
+        860,
+        200
+      ],
+      "id": "428a31a8-625c-4c7f-85db-1a79205fd85a",
+      "name": "Anthropic Chat Model1",
+      "credentials": {
+        "anthropicApi": {
+          "id": "2m3wysdo0qfDXcn5",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "b915c46f-6241-4b30-9440-f3c1549299ec",
+      "name": "Markdown"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "191001c0-c035-430d-9ea0-3fccf269436f",
+  "meta": {
+    "instanceId": "4d2d83e82e7df2cbc3c7fe97a1ceb48888453afde18522210bd07b66fd4e60f9"
+  },
+  "id": "dH7KYGpgDry4BzUL",
+  "tags": []
+}
