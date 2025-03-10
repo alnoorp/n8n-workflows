@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N8N Workflow Library</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js"></script>
+  <script src="https://www.unpkg.com/lit@2.0.0-rc.2/polyfill-support.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .sidebar {
+      width: 300px;
+      padding: 20px;
+      border-right: 1px solid #e0e0e0;
+      overflow-y: auto;
+      transition: all 0.3s;
+    }
+
+    .sidebar.hidden {
+      width: 0;
+      padding: 0;
+      border: none;
+    }
+
+    .toggle-sidebar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .workflow-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #n8n-demo-container, .workflow-json {
+      flex: 1;
+      border: 1px solid #e0e0e0;
+      overflow: auto;
+      max-height: 100%;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .view-toggle button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background-color: #f5f5f5;
+      cursor: pointer;
+    }
+
+    .view-toggle button.active {
+      background-color: #0366d6;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-sidebar" onclick="toggleSidebar()">Toggle Sidebar</button>
+  <div class="container">
+    <div class="sidebar" id="sidebar">
+      <input type="text" placeholder="Search...">
+      <ul id="workflow-list"></ul>
+    </div>
+    <div class="main-content">
+      <div class="view-toggle">
+        <button onclick="showWorkflow()" class="active">Workflow</button>
+        <button onclick="showJson()">JSON</button>
+      </div>
+      <div class="workflow-container">
+        <div id="n8n-demo-container"></div>
+        <pre class="workflow-json" id="json-container" style="display:none;"></pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('hidden');
+}
+
+function showWorkflow() {
+  document.getElementById('n8n-demo-container').style.display = 'block';
+  document.getElementById('json-container').style.display = 'none';
+}
+
+function showJson() {
+  document.getElementById('n8n-demo-container').style.display = 'none';
+  document.getElementById('json-container').style.display = 'block';
+}
+</script>
+</body>
+</html>
