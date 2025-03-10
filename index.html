@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N8N Workflow Library</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    h1 {
+      margin: 0;
+      color: #333;
+    }
+    
+    .library-layout {
+      display: flex;
+      margin-top: 20px;
+    }
+    
+    .sidebar {
+      width: 300px;
+      padding-right: 30px;
+      border-right: 1px solid #e0e0e0;
+    }
+    
+    .workflow-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .workflow-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .workflow-item:hover {
+      background-color: #f9f9f9;
+    }
+    
+    .workflow-item.active {
+      background-color: #f0f7ff;
+      border-left: 3px solid #0366d6;
+      font-weight: 500;
+    }
+    
+    .main-content {
+      flex: 1;
+      padding-left: 30px;
+    }
+    
+    .workflow-detail {
+      margin-bottom: 20px;
+    }
+    
+    .view-toggle {
+      margin-bottom: 20px;
+    }
+    
+    .toggle-btn {
+      padding: 8px 16px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .toggle-btn.active {
+      background-color: #0366d6;
+      color: white;
+      border-color: #0366d6;
+    }
+    
+    .workflow-container {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+      min-height: 400px;
+    }
+    
+    .workflow-json {
+      padding: 20px;
+      background-color: #f6f8fa;
+      overflow: auto;
+      max-height: 800px;
+    }
+    
+    .search-box {
+      margin-bottom: 20px;
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 5px;
+    }
+    
+    .tag {
+      font-size: 12px;
+      background-color: #e1f5fe;
+      color: #0366d6;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .library-layout {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        padding-right: 0;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .main-content {
+        padding-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>N8N Workflow Library</h1>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="library-layout">
+      <div class="sidebar">
+        <input type="text" class="search-box" id="search" placeholder="Search workflows...">
+        <ul class="workflow-list" id="workflow-list">
+          <!-- Workflows will be dynamically populated here -->
+          <li>Loading workflows...</li>
+        </ul>
+      </div>
+      
+      <div class="main-content">
+        <div class="workflow-detail" id="workflow-detail">
+          <h2 id="workflow-title">Select a workflow</h2>
+          <p id="workflow-description"></p>
+          <div class="tag-list" id="workflow-tags"></div>
+        </div>
+        
+        <div class="view-toggle">
+          <button class="toggle-btn active" id="view-workflow">View Workflow</button>
+          <button class="toggle-btn" id="view-json">View JSON</button>
+        </div>
+        
+        <div class="workflow-container">
+          <div id="n8n-demo-container"></div>
+          <pre class="workflow-json" id="json-container" style="display: none;"><code class="language-json"></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Main app functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      let workflows = [];
+      let currentWorkflow = null;
+      const workflowList = document.getElementById('workflow-list');
+      const workflowTitle = document.getElementById('workflow-title');
+      const workflowDescription = document.getElementById('workflow-description');
+      const workflowTags = document.getElementById('workflow-tags');
+      const n8nDemoContainer = document.getElementById('n8n-demo-container');
+      const jsonContainer = document.getElementById('json-container').querySelector('code');
+      const searchInput = document.getElementById('search');
+      
+      // View toggle functionality
+      const viewWorkflowBtn = document.getElementById('view-workflow');
+      const viewJsonBtn = document.getElementById('view-json');
+      const demoContainer = document.getElementById('n8n-demo-container');
+      const jsonView = document.getElementById('json-container');
+      
+      viewWorkflowBtn.addEventListener('click', () => {
+        viewWorkflowBtn.classList.add('active');
+        viewJsonBtn.classList.remove('active');
+        demoContainer.style.display = 'block';
+        jsonView.style.display = 'none';
+      });
+      
+      viewJsonBtn.addEventListener('click', () => {
+        viewJsonBtn.classList.add('active');
+        viewWorkflowBtn.classList.remove('active');
+        jsonView.style.display = 'block';
+        demoContainer.style.display = 'none';
+      });
+
+      // Load workflow index
+      fetch('workflows/index.json')
+        .then(response => response.json())
+        .then(data => {
+          workflows = data;
+          renderWorkflowList(workflows);
+          
+          // If there's a workflow ID in the URL hash, load that workflow
+          const workflowId = window.location.hash.substring(1);
+          if (workflowId) {
+            const workflow = workflows.find(w => w.id === workflowId);
+            if (workflow) {
+              loadWorkflow(workflow);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error loading workflow index:', error);
+          workflowList.innerHTML = '<li>Error loading workflows. Please try again later.</li>';
+        });
+      
+      // Search functionality
+      searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredWorkflows = workflows.filter(workflow => 
+          workflow.title.toLowerCase().includes(searchTerm) || 
+          workflow.description.toLowerCase().includes(searchTerm) ||
+          (workflow.tags && workflow.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+        );
+        renderWorkflowList(filteredWorkflows);
+      });
+      
+      // Render the list of workflows
+      function renderWorkflowList(workflowsToRender) {
+        if (workflowsToRender.length === 0) {
+          workflowList.innerHTML = '<li>No workflows found</li>';
+          return;
+        }
+        
+        workflowList.innerHTML = workflowsToRender.map(workflow => `
+          <li class="workflow-item ${currentWorkflow && currentWorkflow.id === workflow.id ? 'active' : ''}" 
+              data-id="${workflow.id}">
+            <div>${workflow.title}</div>
+            <div class="tag-list">
+              ${workflow.tags ? workflow.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
+            </div>
+          </li>
+        `).join('');
+        
+        // Add click event listeners to workflow items
+        document.querySelectorAll('.workflow-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const workflowId = item.getAttribute('data-id');
+            const workflow = workflows.find(w => w.id === workflowId);
+            if (workflow) {
+              // Update URL hash to enable direct linking to workflows
+              window.location.hash = workflow.id;
+              loadWorkflow(workflow);
+            }
+          });
+        });
+      }
+      
+      // Load and display a workflow
+      function loadWorkflow(workflow) {
+        currentWorkflow = workflow;
+        
+        // Update active state in sidebar
+        document.querySelectorAll('.workflow-item').forEach(item => {
+          if (item.getAttribute('data-id') === workflow.id) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+        
+        // Update workflow details
+        workflowTitle.textContent = workflow.title;
+        workflowDescription.textContent = workflow.description;
+        
+        // Update tags
+        if (workflow.tags && workflow.tags.length > 0) {
+          workflowTags.innerHTML = workflow.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+          workflowTags.style.display = 'flex';
+        } else {
+          workflowTags.style.display = 'none';
+        }
+        
+        // Fetch and render the workflow
+        fetch(`workflows/${workflow.filename}`)
+          .then(response => response.json())
+          .then(data => {
+            const workflowJson = JSON.stringify(data, null, 2);
+            
+            // Clear previous workflow
+            n8nDemoContainer.innerHTML = '';
+            
+            // Create and append n8n-demo element
+            const n8nDemoElement = document.createElement('n8n-demo');
+            n8nDemoElement.setAttribute('workflow', JSON.stringify(data));
+            n8nDemoElement.setAttribute('frame', 'true');
+            n8nDemoContainer.appendChild(n8nDemoElement);
+            
+            // Update JSON view
+            jsonContainer.textContent = workflowJson;
+            hljs.highlightElement(jsonContainer);
+            
+            // Reset view to workflow view
+            viewWorkflowBtn.click();
+          })
+          .catch(error => {
+            console.error('Error loading workflow:', error);
+            n8nDemoContainer.innerHTML = `<p>Error loading workflow: ${error.message}</p>`;
+            jsonContainer.textContent = `Error loading workflow: ${error.message}`;
+          });
+      }
+    });
+  </script>
+</body>
+</html>
