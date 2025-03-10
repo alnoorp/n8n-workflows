@@ -1,0 +1,9 @@
+[
+  {
+    "id": "issues-closed-report",
+    "title": "Issues Closed Report",
+    "description": "Generates a report of recently closed GitHub issues",
+    "filename": "Issues_Closed_Report.json",
+    "tags": ["github", "reporting"]
+  }
+]
