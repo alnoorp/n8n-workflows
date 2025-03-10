@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N8N Workflow Library</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js"></script>
+  <script src="https://www.unpkg.com/lit@2.0.0-rc.2/polyfill-support.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@n8n_io/n8n-demo-component/n8n-demo.bundled.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="flex h-screen">
+    <div id="sidebar" class="w-64 bg-white border-r border-gray-200 p-4 transition-all duration-300 ease-in-out transform -translate-x-full hover:translate-x-0">
+      <div class="flex justify-between items-center mb-4">
+        <span class="text-lg font-semibold">Workflows</span>
+        <button class="text-gray-600" onclick="togglePinSidebar()">📌</button>
+      </div>
+      <input type="text" id="search" placeholder="Search..." class="w-full border rounded px-2 py-1 mb-4">
+      <ul id="workflow-list" class="space-y-2"></ul>
+    </div>
+
+    <div class="flex-1 flex flex-col">
+      <div class="flex border-b border-gray-200">
+        <button onclick="showWorkflow()" class="flex-1 text-center py-2 bg-blue-600 text-white">Workflow</button>
+        <button onclick="showJson()" class="flex-1 text-center py-2 bg-gray-100 text-gray-600">JSON</button>
+      </div>
+      <div class="flex-1 p-4 overflow-auto">
+        <div id="n8n-demo-container" class="h-full"></div>
+        <pre id="json-container" class="hidden bg-white border p-4 h-full overflow-auto"></pre>
+      </div>
+    </div>
+  </div>
+
+<script>
+let workflows = [];
+let currentWorkflow = null;
+let sidebarPinned = false;
+
+function togglePinSidebar() {
+  sidebarPinned = !sidebarPinned;
+  const sidebar = document.getElementById('sidebar');
+  if (sidebarPinned) {
+    sidebar.classList.remove('-translate-x-full');
+  } else {
+    sidebar.classList.add('-translate-x-full');
+  }
+}
+
+function showWorkflow() {
+  document.getElementById('n8n-demo-container').style.display = 'block';
+  document.getElementById('json-container').style.display = 'none';
+}
+
+function showJson() {
+  document.getElementById('n8n-demo-container').style.display = 'none';
+  document.getElementById('json-container').style.display = 'block';
+}
+
+fetch('workflows/index.json')
+  .then(response => response.json())
+  .then(data => {
+    workflows = data;
+    renderWorkflowList(workflows);
+  });
+
+function renderWorkflowList(workflows) {
+  const list = document.getElementById('workflow-list');
+  list.innerHTML = workflows.map(w => `
+    <li class="cursor-pointer text-blue-600 hover:underline" onclick="loadWorkflow('${w.id}')">${w.title}</li>
+  `).join('');
+}
+
+function loadWorkflow(id) {
+  const workflow = workflows.find(w => w.id === id);
+  if (!workflow) return;
+
+  currentWorkflow = workflow;
+
+  fetch(`workflows/${workflow.filename}`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('json-container').textContent = JSON.stringify(data, null, 2);
+      const container = document.getElementById('n8n-demo-container');
+      container.innerHTML = '';
+      const n8nElement = document.createElement('n8n-demo');
+      n8nElement.setAttribute('workflow', JSON.stringify(data));
+      container.appendChild(n8nElement);
+      showWorkflow();
+    });
+}
+</script>
+</body>
+</html>
